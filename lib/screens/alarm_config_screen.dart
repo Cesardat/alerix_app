@@ -110,10 +110,10 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
       }
       
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.audio,
-        allowMultiple: false,
-        allowedExtensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg'],
-      );
+  type: FileType.any,  // Cambiado de FileType.audio
+  allowMultiple: false,
+  allowedExtensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'm4r'],
+);
       
       if (result != null && result.files.single.path != null) {
         final filePath = result.files.single.path!;
