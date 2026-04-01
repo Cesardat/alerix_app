@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:alerix_app/screens/alarm_config_screen.dart';
+import 'dart:io';
 
 void main() {
   runApp(const AlerixApp());
@@ -94,7 +95,7 @@ class LocationService {
       );
       return position;
     } catch (e) {
-      print('Error obteniendo ubicación: $e');
+      debugPrint('Error obteniendo ubicación: $e');
       return null;
     }
   }
@@ -115,19 +116,15 @@ class WhatsAppService {
       if (await canLaunchUrl(Uri.parse(url))) {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       } else {
-        print('No se puede abrir WhatsApp');
+        debugPrint('No se puede abrir WhatsApp');
       }
     } catch (e) {
-      print('Error abriendo WhatsApp: $e');
+      debugPrint('Error abriendo WhatsApp: $e');
     }
   }
 }
 
 // ==================== SERVICIO DE ALARMA ====================
-import 'dart:io';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 class AlarmService {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
@@ -150,7 +147,8 @@ class AlarmService {
       
       // Determinar qué sonido reproducir
       if (selectedTone.startsWith('Personalizado:') && customTonePath != null && await File(customTonePath).exists()) {
-        await _audioPlayer.play(DeviceSource(customTonePath));
+        // Usar UrlSource con file:// para archivos locales
+        await _audioPlayer.play(UrlSource('file://$customTonePath'));
       } else if (selectedTone == 'Predeterminado') {
         await _audioPlayer.play(AssetSource('sounds/jacocosound.mp3'));
       } else {
@@ -161,14 +159,14 @@ class AlarmService {
       await _audioPlayer.setVolume(volume / 100.0);
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       
-      print('🔔 Alarma sonando - Volumen: $volume%, Duración: ${duration}s');
+      debugPrint('🔔 Alarma sonando - Volumen: $volume%, Duración: ${duration}s');
       
       Future.delayed(Duration(seconds: duration), () {
         if (_isPlaying && !_isStopping) stopAlarm();
       });
       
     } catch (e) {
-      print('Error reproduciendo alarma: $e');
+      debugPrint('Error reproduciendo alarma: $e');
       _isPlaying = false;
     }
   }
@@ -181,9 +179,9 @@ class AlarmService {
       await _audioPlayer.stop();
       _isPlaying = false;
       _isStopping = false;
-      print('🔇 Alarma detenida');
+      debugPrint('🔇 Alarma detenida');
     } catch (e) {
-      print('Error deteniendo alarma: $e');
+      debugPrint('Error deteniendo alarma: $e');
       _isStopping = false;
     }
   }
@@ -220,11 +218,13 @@ class _LoginScreenState extends State<LoginScreen> {
     if (password == "1234") {
       setState(() => _isLoading = true);
       Future.delayed(const Duration(seconds: 1), () {
-        setState(() => _isLoading = false);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MainScreen()),
-        );
+        if (mounted) {
+          setState(() => _isLoading = false);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const MainScreen()),
+          );
+        }
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -366,13 +366,17 @@ class _MainScreenState extends State<MainScreen> {
         _contactCount = _contacts.length;
       });
       _saveContacts();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Contacto agregado')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Contacto agregado')),
+        );
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Máximo 5 contactos')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Máximo 5 contactos')),
+        );
+      }
     }
   }
 
@@ -382,9 +386,11 @@ class _MainScreenState extends State<MainScreen> {
       _contactCount = _contacts.length;
     });
     _saveContacts();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Contacto eliminado')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Contacto eliminado')),
+      );
+    }
   }
 
   Future<void> _triggerEmergency() async {
@@ -395,20 +401,22 @@ class _MainScreenState extends State<MainScreen> {
     await _alarmService.playAlarm();
 
     // Mostrar diálogo de carga
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text('Obteniendo ubicación...'),
-          ],
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              const Text('Obteniendo ubicación...'),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
 
     // Obtener ubicación
     Position? position = await _locationService.getCurrentLocation();
@@ -421,12 +429,16 @@ class _MainScreenState extends State<MainScreen> {
     String message = "🚨 S.O.S. EMERGENCIA 🚨\n\nNecesito ayuda urgente.\n\nMi ubicación: $locationLink";
 
     // Cerrar diálogo de carga
-    Navigator.pop(context);
+    if (mounted) {
+      Navigator.pop(context);
+    }
 
     // Mostrar confirmación
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Enviando alerta a ${_contacts.length} contactos...')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Enviando alerta a ${_contacts.length} contactos...')),
+      );
+    }
 
     // Enviar mensaje a cada contacto
     for (var contact in _contacts) {
@@ -434,18 +446,22 @@ class _MainScreenState extends State<MainScreen> {
       await Future.delayed(const Duration(milliseconds: 500));
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('🚨 EMERGENCIA ACTIVADA - Mensajes enviados a tus contactos')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('🚨 EMERGENCIA ACTIVADA - Mensajes enviados a tus contactos')),
+      );
+    }
 
     setState(() => _isSosPressed = false);
   }
 
   void _cancelAlarm() {
     _alarmService.stopAlarm();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Alarma cancelada')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Alarma cancelada')),
+      );
+    }
   }
 
   @override
@@ -468,7 +484,7 @@ class _MainScreenState extends State<MainScreen> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -542,7 +558,7 @@ class _MainScreenState extends State<MainScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, -2),
                 ),
@@ -550,7 +566,6 @@ class _MainScreenState extends State<MainScreen> {
             ),
             child: Row(
               children: [
-                // Botón Ajustes - AHORA CON NAVEGACIÓN A LA PANTALLA DE CONFIGURACIÓN
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {

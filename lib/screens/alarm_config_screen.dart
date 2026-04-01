@@ -47,13 +47,11 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
 
   Future<void> _requestPermissions() async {
     if (Platform.isIOS) {
-      // En iOS, pedir permiso para acceder a la biblioteca multimedia
       final status = await Permission.mediaLibrary.request();
       if (!status.isGranted) {
-        print('Permiso de biblioteca multimedia denegado');
+        debugPrint('Permiso de biblioteca multimedia denegado');
       }
     } else if (Platform.isAndroid) {
-      // En Android, pedir permiso de almacenamiento
       if (await Permission.storage.isDenied) {
         await Permission.storage.request();
       }
@@ -95,13 +93,14 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
 
   Future<void> _selectCustomTone() async {
     try {
-      // Verificar permisos
       if (Platform.isIOS) {
         final status = await Permission.mediaLibrary.request();
         if (!status.isGranted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Se necesita acceso a la biblioteca de música')),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Se necesita acceso a la biblioteca de música')),
+            );
+          }
           return;
         }
       } else if (Platform.isAndroid) {
@@ -110,7 +109,6 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
         }
       }
       
-      // Seleccionar archivo de audio
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.audio,
         allowMultiple: false,
@@ -121,14 +119,13 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
         final filePath = result.files.single.path!;
         final fileName = result.files.single.name;
         
-        // Copiar archivo al directorio de la app para persistencia
         final appDir = await getApplicationDocumentsDirectory();
         final destination = File('${appDir.path}/custom_alarm_${DateTime.now().millisecondsSinceEpoch}.${fileName.split('.').last}');
         await File(filePath).copy(destination.path);
         
-        // Probar el tono seleccionado
+        // Probar el tono seleccionado - usar UrlSource con file://
         await _testPlayer.stop();
-        await _testPlayer.play(DeviceSource(destination.path));
+        await _testPlayer.play(UrlSource('file://${destination.path}'));
         await _testPlayer.setVolume(_volume / 100.0);
         
         Future.delayed(const Duration(seconds: 2), () {
@@ -141,15 +138,19 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
           _selectedTone = 'Personalizado: $fileName';
         });
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Tono seleccionado: $fileName')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Tono seleccionado: $fileName')),
+          );
+        }
       }
     } catch (e) {
-      print('Error seleccionando tono: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al seleccionar el tono')),
-      );
+      debugPrint('Error seleccionando tono: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al seleccionar el tono')),
+        );
+      }
     }
   }
 
@@ -162,15 +163,16 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
       } else if (_selectedTone.startsWith('Personalizado:') && _customTonePath != null) {
         final file = File(_customTonePath!);
         if (await file.exists()) {
-          await _testPlayer.play(DeviceSource(_customTonePath!));
+          await _testPlayer.play(UrlSource('file://$_customTonePath'));
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Archivo no encontrado. Selecciona otro tono.')),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Archivo no encontrado. Selecciona otro tono.')),
+            );
+          }
           return;
         }
       } else {
-        // Para tonos predefinidos, usar el archivo local
         await _testPlayer.play(AssetSource('sounds/jacocosound.mp3'));
       }
       
@@ -190,7 +192,7 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
       });
       
     } catch (e) {
-      print('Error: $e');
+      debugPrint('Error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('⚠️ Error al probar la alarma')),
@@ -223,7 +225,7 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -293,7 +295,7 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -348,7 +350,7 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
