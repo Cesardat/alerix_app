@@ -16,7 +16,6 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
   bool _isLoading = false;
   final AudioPlayer _testPlayer = AudioPlayer();
   
-  // Lista de tonos predefinidos que funcionan en iOS
   final List<String> _systemTones = [
     'Alarma 1',
     'Alarma 2',
@@ -25,7 +24,6 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
     'Campana',
   ];
 
-  // URL de sonidos que funcionan en iOS
   final Map<String, String> _soundUrls = {
     'Alarma 1': 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
     'Alarma 2': 'https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3',
@@ -76,6 +74,8 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
       await _testPlayer.stop();
       
       final soundUrl = _soundUrls[_selectedTone] ?? _soundUrls['Alarma 1']!;
+      debugPrint('Probando URL: $soundUrl');
+      
       await _testPlayer.play(UrlSource(soundUrl));
       await _testPlayer.setVolume(_volume / 100.0);
       
@@ -96,7 +96,10 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
       debugPrint('Error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('⚠️ Error al probar la alarma')),
+          SnackBar(
+            content: Text('⚠️ Error: ${e.toString().substring(0, 50)}'),
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     }
@@ -118,7 +121,6 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Tono de alarma
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -168,7 +170,6 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Volumen
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -223,7 +224,6 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Duración
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(

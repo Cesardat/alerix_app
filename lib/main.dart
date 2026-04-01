@@ -129,7 +129,6 @@ class AlarmService {
   bool _isPlaying = false;
   bool _isStopping = false;
   
-  // URL de sonidos que funcionan en iOS
   final Map<String, String> _soundUrls = {
     'Alarma 1': 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
     'Alarma 2': 'https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3',
