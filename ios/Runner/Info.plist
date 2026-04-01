@@ -66,5 +66,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	
+	<!-- PERMISOS DE UBICACIÓN -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>ALERIX necesita tu ubicación para enviarla a tus contactos de emergencia</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>ALERIX necesita tu ubicación incluso en segundo plano para emergencias</string>
+	
 </dict>
 </plist>
