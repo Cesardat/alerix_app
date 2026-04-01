@@ -128,14 +128,6 @@ class AlarmService {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
   bool _isStopping = false;
-  
-  final Map<String, String> _soundUrls = {
-    'Alarma 1': 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
-    'Alarma 2': 'https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3',
-    'Sirena': 'https://www.soundjay.com/misc/sounds/police-siren-01.mp3',
-    'Timbre': 'https://www.soundjay.com/misc/sounds/door-bell-01.mp3',
-    'Campana': 'https://www.soundjay.com/misc/sounds/church-bell-01.mp3',
-  };
 
   Future<void> playAlarm() async {
     if (_isPlaying) return;
@@ -143,7 +135,6 @@ class AlarmService {
     final prefs = await SharedPreferences.getInstance();
     final volume = prefs.getInt('alarm_volume') ?? 80;
     final duration = prefs.getInt('alarm_duration') ?? 30;
-    final selectedTone = prefs.getString('alarm_tone') ?? 'Alarma 1';
     
     try {
       _isPlaying = true;
@@ -151,8 +142,8 @@ class AlarmService {
       
       await _audioPlayer.setPlayerMode(PlayerMode.mediaPlayer);
       
-      final soundUrl = _soundUrls[selectedTone] ?? _soundUrls['Alarma 1']!;
-      await _audioPlayer.play(UrlSource(soundUrl));
+      // Usar sonido local en assets
+      await _audioPlayer.play(AssetSource('sounds/alarm.mp3'));
       await _audioPlayer.setVolume(volume / 100.0);
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       

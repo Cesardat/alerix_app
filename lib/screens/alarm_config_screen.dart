@@ -12,24 +12,26 @@ class AlarmConfigScreen extends StatefulWidget {
 class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
   int _volume = 80;
   int _duration = 30;
-  String _selectedTone = 'Alarma 1';
+  String _selectedTone = 'Predeterminado';
   bool _isLoading = false;
   final AudioPlayer _testPlayer = AudioPlayer();
   
+  // Lista de tonos predefinidos
   final List<String> _systemTones = [
-    'Alarma 1',
-    'Alarma 2',
-    'Sirena',
+    'Predeterminado',
+    'Alarma',
     'Timbre',
+    'Sirena',
     'Campana',
   ];
 
-  final Map<String, String> _soundUrls = {
-    'Alarma 1': 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
-    'Alarma 2': 'https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3',
-    'Sirena': 'https://www.soundjay.com/misc/sounds/police-siren-01.mp3',
-    'Timbre': 'https://www.soundjay.com/misc/sounds/door-bell-01.mp3',
-    'Campana': 'https://www.soundjay.com/misc/sounds/church-bell-01.mp3',
+  // Para iOS, usaremos sonidos del sistema con DeviceSource
+  final Map<String, String> _iosSounds = {
+    'Predeterminado': 'alarm.caf',
+    'Alarma': 'alarm.caf',
+    'Timbre': 'doorbell.caf',
+    'Sirena': 'siren.caf',
+    'Campana': 'bell.caf',
   };
 
   @override
@@ -50,7 +52,7 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
     setState(() {
       _volume = prefs.getInt('alarm_volume') ?? 80;
       _duration = prefs.getInt('alarm_duration') ?? 30;
-      _selectedTone = prefs.getString('alarm_tone') ?? 'Alarma 1';
+      _selectedTone = prefs.getString('alarm_tone') ?? 'Predeterminado';
       _isLoading = false;
     });
   }
@@ -73,10 +75,8 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
     try {
       await _testPlayer.stop();
       
-      final soundUrl = _soundUrls[_selectedTone] ?? _soundUrls['Alarma 1']!;
-      debugPrint('Probando URL: $soundUrl');
-      
-      await _testPlayer.play(UrlSource(soundUrl));
+      // Usar AssetSource para sonido local
+      await _testPlayer.play(AssetSource('sounds/alarm.mp3'));
       await _testPlayer.setVolume(_volume / 100.0);
       
       if (mounted) {
@@ -96,10 +96,7 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
       debugPrint('Error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('⚠️ Error: ${e.toString().substring(0, 50)}'),
-            duration: const Duration(seconds: 3),
-          ),
+          const SnackBar(content: Text('⚠️ Error al probar la alarma')),
         );
       }
     }
@@ -121,6 +118,7 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Tono de alarma
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -170,6 +168,7 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Volumen
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -224,6 +223,7 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Duración
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
