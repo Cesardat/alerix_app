@@ -1,5 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class AlarmService {
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -9,7 +10,6 @@ class AlarmService {
   Future<void> playAlarm() async {
     if (_isPlaying) return;
     
-    // Cargar configuración guardada
     final prefs = await SharedPreferences.getInstance();
     final volume = prefs.getInt('alarm_volume') ?? 80;
     final duration = prefs.getInt('alarm_duration') ?? 30;
@@ -18,18 +18,20 @@ class AlarmService {
       _isPlaying = true;
       _isStopping = false;
       
-      // Reproducir alarma
+      // Configurar audio para que suene incluso en silencio
+      await _audioPlayer.setPlayerMode(PlayerMode.mediaPlayer);
+      
+      // Usar archivo local
       await _audioPlayer.play(AssetSource('sounds/jacocosound.wav'));
       await _audioPlayer.setVolume(volume / 100.0);
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       
       print('🔔 Alarma sonando - Volumen: $volume%, Duración: ${duration}s');
       
-      // Detener automáticamente después de la duración configurada
+      // Detener automáticamente después de la duración
       Future.delayed(Duration(seconds: duration), () {
         if (_isPlaying && !_isStopping) {
           stopAlarm();
-          print('⏰ Alarma detenida automáticamente después de ${duration}s');
         }
       });
       
@@ -47,7 +49,7 @@ class AlarmService {
       await _audioPlayer.stop();
       _isPlaying = false;
       _isStopping = false;
-      print('🔇 Alarma detenida manualmente');
+      print('🔇 Alarma detenida');
     } catch (e) {
       print('Error deteniendo alarma: $e');
       _isStopping = false;

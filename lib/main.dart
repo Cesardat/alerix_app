@@ -127,27 +127,55 @@ class WhatsAppService {
 class AlarmService {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
+  bool _isStopping = false;
 
   Future<void> playAlarm() async {
     if (_isPlaying) return;
     
+    // Cargar configuración guardada
+    final prefs = await SharedPreferences.getInstance();
+    final volume = prefs.getInt('alarm_volume') ?? 80;
+    final duration = prefs.getInt('alarm_duration') ?? 30;
+    
     try {
       _isPlaying = true;
+      _isStopping = false;
+      
+      // Configurar para iOS (modo media player)
+      await _audioPlayer.setPlayerMode(PlayerMode.mediaPlayer);
+      
+      // Reproducir sonido
       await _audioPlayer.play(AssetSource('sounds/jacocosound.wav'));
+      await _audioPlayer.setVolume(volume / 100.0);
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      
+      print('🔔 Alarma sonando - Volumen: $volume%, Duración: ${duration}s');
+      
+      // Detener automáticamente después de la duración
+      Future.delayed(Duration(seconds: duration), () {
+        if (_isPlaying && !_isStopping) {
+          stopAlarm();
+        }
+      });
+      
     } catch (e) {
       print('Error reproduciendo alarma: $e');
+      _isPlaying = false;
     }
   }
 
   Future<void> stopAlarm() async {
     if (!_isPlaying) return;
     
+    _isStopping = true;
     try {
       await _audioPlayer.stop();
       _isPlaying = false;
+      _isStopping = false;
+      print('🔇 Alarma detenida');
     } catch (e) {
       print('Error deteniendo alarma: $e');
+      _isStopping = false;
     }
   }
 
