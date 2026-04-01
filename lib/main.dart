@@ -124,6 +124,10 @@ class WhatsAppService {
 }
 
 // ==================== SERVICIO DE ALARMA ====================
+import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 class AlarmService {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
@@ -132,30 +136,35 @@ class AlarmService {
   Future<void> playAlarm() async {
     if (_isPlaying) return;
     
-    // Cargar configuración guardada
     final prefs = await SharedPreferences.getInstance();
     final volume = prefs.getInt('alarm_volume') ?? 80;
     final duration = prefs.getInt('alarm_duration') ?? 30;
+    final selectedTone = prefs.getString('alarm_tone') ?? 'Predeterminado';
+    final customTonePath = prefs.getString('custom_tone_path');
     
     try {
       _isPlaying = true;
       _isStopping = false;
       
-      // Configurar para iOS (modo media player)
       await _audioPlayer.setPlayerMode(PlayerMode.mediaPlayer);
       
-      // Reproducir sonido
-      await _audioPlayer.play(AssetSource('sounds/jacocosound.mp3'));
+      // Determinar qué sonido reproducir
+      if (selectedTone.startsWith('Personalizado:') && customTonePath != null && await File(customTonePath).exists()) {
+        await _audioPlayer.play(DeviceSource(customTonePath));
+      } else if (selectedTone == 'Predeterminado') {
+        await _audioPlayer.play(AssetSource('sounds/jacocosound.mp3'));
+      } else {
+        // Para tonos predefinidos, usar el archivo local
+        await _audioPlayer.play(AssetSource('sounds/jacocosound.mp3'));
+      }
+      
       await _audioPlayer.setVolume(volume / 100.0);
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       
       print('🔔 Alarma sonando - Volumen: $volume%, Duración: ${duration}s');
       
-      // Detener automáticamente después de la duración
       Future.delayed(Duration(seconds: duration), () {
-        if (_isPlaying && !_isStopping) {
-          stopAlarm();
-        }
+        if (_isPlaying && !_isStopping) stopAlarm();
       });
       
     } catch (e) {
