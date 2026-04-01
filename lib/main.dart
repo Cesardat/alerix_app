@@ -238,7 +238,19 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.warning_rounded, size: 80, color: Colors.red.shade700),
+                // LOGO
+                Image.asset(
+                  'assets/images/logo.png',
+                  width: 100,
+                  height: 100,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.warning_rounded,
+                      size: 80,
+                      color: Colors.red.shade700,
+                    );
+                  },
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'ALERIX',
@@ -456,9 +468,20 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ALERIX'),
+        title: Image.asset(
+          'assets/images/logo.png',
+          height: 35,
+          errorBuilder: (context, error, stackTrace) {
+            return const Text(
+              'ALERIX',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            );
+          },
+        ),
         backgroundColor: Colors.red.shade700,
-        foregroundColor: Colors.white,
         centerTitle: true,
       ),
       body: Column(
