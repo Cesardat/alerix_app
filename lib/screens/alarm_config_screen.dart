@@ -62,33 +62,41 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
   }
 
   Future<void> _testAlarm() async {
-    try {
-      // Detener cualquier reproducción anterior
-      await _testPlayer.stop();
-      
-      // Reproducir sonido de prueba
-      await _testPlayer.play(AssetSource('sounds/jacocosound.wav'));
-      await _testPlayer.setVolume(_volume / 100.0);
-      
+  try {
+    // Detener cualquier reproducción anterior
+    await _testPlayer.stop();
+    
+    // Reproducir sonido de prueba
+    await _testPlayer.play(AssetSource('sounds/jacocosound.wav'));
+    await _testPlayer.setVolume(_volume / 100.0);
+    
+    // Mostrar mensaje de éxito
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('🔔 Probando alarma - Volumen: $_volume%'),
           duration: const Duration(seconds: 2),
         ),
       );
-      
-      // Detener después de 3 segundos
-      Future.delayed(const Duration(seconds: 3), () {
-        _testPlayer.stop();
-      });
-      
-    } catch (e) {
+    }
+    
+    // Detener después de 3 segundos
+    Future.delayed(const Duration(seconds: 3), () {
+      _testPlayer.stop();
+    });
+    
+  } catch (e) {
+    print('Error en prueba de alarma: $e');
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al probar la alarma')),
+        SnackBar(
+          content: Text('⚠️ Error: ${e.toString().substring(0, 50)}'),
+          duration: const Duration(seconds: 3),
+        ),
       );
-      print('Error en prueba de alarma: $e');
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
