@@ -1,10 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:path_provider/path_provider.dart';
 
 class AlarmConfigScreen extends StatefulWidget {
   const AlarmConfigScreen({super.key});
@@ -16,15 +12,12 @@ class AlarmConfigScreen extends StatefulWidget {
 class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
   int _volume = 80;
   int _duration = 30;
-  String _selectedTone = 'Predeterminado';
-  String? _customTonePath;
-  String? _customToneName;
+  String _selectedTone = 'Alarma 1';
   bool _isLoading = false;
   final AudioPlayer _testPlayer = AudioPlayer();
   
-  // Lista de tonos predefinidos
+  // Lista de tonos predefinidos que funcionan en iOS
   final List<String> _systemTones = [
-    'Predeterminado',
     'Alarma 1',
     'Alarma 2',
     'Sirena',
@@ -32,11 +25,19 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
     'Campana',
   ];
 
+  // URL de sonidos que funcionan en iOS
+  final Map<String, String> _soundUrls = {
+    'Alarma 1': 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
+    'Alarma 2': 'https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3',
+    'Sirena': 'https://www.soundjay.com/misc/sounds/police-siren-01.mp3',
+    'Timbre': 'https://www.soundjay.com/misc/sounds/door-bell-01.mp3',
+    'Campana': 'https://www.soundjay.com/misc/sounds/church-bell-01.mp3',
+  };
+
   @override
   void initState() {
     super.initState();
     _loadSettings();
-    _requestPermissions();
   }
 
   @override
@@ -45,28 +46,13 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
     super.dispose();
   }
 
-  Future<void> _requestPermissions() async {
-    if (Platform.isIOS) {
-      final status = await Permission.mediaLibrary.request();
-      if (!status.isGranted) {
-        debugPrint('Permiso de biblioteca multimedia denegado');
-      }
-    } else if (Platform.isAndroid) {
-      if (await Permission.storage.isDenied) {
-        await Permission.storage.request();
-      }
-    }
-  }
-
   Future<void> _loadSettings() async {
     setState(() => _isLoading = true);
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _volume = prefs.getInt('alarm_volume') ?? 80;
       _duration = prefs.getInt('alarm_duration') ?? 30;
-      _selectedTone = prefs.getString('alarm_tone') ?? 'Predeterminado';
-      _customTonePath = prefs.getString('custom_tone_path');
-      _customToneName = prefs.getString('custom_tone_name');
+      _selectedTone = prefs.getString('alarm_tone') ?? 'Alarma 1';
       _isLoading = false;
     });
   }
@@ -76,12 +62,6 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
     await prefs.setInt('alarm_volume', _volume);
     await prefs.setInt('alarm_duration', _duration);
     await prefs.setString('alarm_tone', _selectedTone);
-    if (_customTonePath != null) {
-      await prefs.setString('custom_tone_path', _customTonePath!);
-    }
-    if (_customToneName != null) {
-      await prefs.setString('custom_tone_name', _customToneName!);
-    }
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -91,91 +71,12 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
     }
   }
 
-  Future<void> _selectCustomTone() async {
-    try {
-      if (Platform.isIOS) {
-        final status = await Permission.mediaLibrary.request();
-        if (!status.isGranted) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Se necesita acceso a la biblioteca de música')),
-            );
-          }
-          return;
-        }
-      } else if (Platform.isAndroid) {
-        if (await Permission.storage.isDenied) {
-          await Permission.storage.request();
-        }
-      }
-      
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-  type: FileType.any,  // Cambiado de FileType.audio
-  allowMultiple: false,
-  allowedExtensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'm4r'],
-);
-      
-      if (result != null && result.files.single.path != null) {
-        final filePath = result.files.single.path!;
-        final fileName = result.files.single.name;
-        
-        final appDir = await getApplicationDocumentsDirectory();
-        final destination = File('${appDir.path}/custom_alarm_${DateTime.now().millisecondsSinceEpoch}.${fileName.split('.').last}');
-        await File(filePath).copy(destination.path);
-        
-        // Probar el tono seleccionado - usar UrlSource con file://
-        await _testPlayer.stop();
-        await _testPlayer.play(UrlSource('file://${destination.path}'));
-        await _testPlayer.setVolume(_volume / 100.0);
-        
-        Future.delayed(const Duration(seconds: 2), () {
-          _testPlayer.stop();
-        });
-        
-        setState(() {
-          _customTonePath = destination.path;
-          _customToneName = fileName;
-          _selectedTone = 'Personalizado: $fileName';
-        });
-        
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Tono seleccionado: $fileName')),
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('Error seleccionando tono: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al seleccionar el tono')),
-        );
-      }
-    }
-  }
-
   Future<void> _testAlarm() async {
     try {
       await _testPlayer.stop();
       
-      if (_selectedTone == 'Predeterminado') {
-        await _testPlayer.play(AssetSource('sounds/jacocosound.mp3'));
-      } else if (_selectedTone.startsWith('Personalizado:') && _customTonePath != null) {
-        final file = File(_customTonePath!);
-        if (await file.exists()) {
-          await _testPlayer.play(UrlSource('file://$_customTonePath'));
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Archivo no encontrado. Selecciona otro tono.')),
-            );
-          }
-          return;
-        }
-      } else {
-        await _testPlayer.play(AssetSource('sounds/jacocosound.mp3'));
-      }
-      
+      final soundUrl = _soundUrls[_selectedTone] ?? _soundUrls['Alarma 1']!;
+      await _testPlayer.play(UrlSource(soundUrl));
       await _testPlayer.setVolume(_volume / 100.0);
       
       if (mounted) {
@@ -250,37 +151,17 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                             ),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           ),
-                          items: [
-                            ..._systemTones.map((tone) {
-                              return DropdownMenuItem(
-                                value: tone,
-                                child: Text(tone),
-                              );
-                            }),
-                            if (_customToneName != null)
-                              DropdownMenuItem(
-                                value: 'Personalizado: $_customToneName',
-                                child: Text('Personalizado: $_customToneName'),
-                              ),
-                          ],
+                          items: _systemTones.map((tone) {
+                            return DropdownMenuItem(
+                              value: tone,
+                              child: Text(tone),
+                            );
+                          }).toList(),
                           onChanged: (value) {
                             if (value != null) {
                               setState(() => _selectedTone = value);
                             }
                           },
-                        ),
-                        const SizedBox(height: 12),
-                        ElevatedButton.icon(
-                          onPressed: _selectCustomTone,
-                          icon: const Icon(Icons.music_note),
-                          label: const Text('Seleccionar de mi biblioteca'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade700,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
                         ),
                       ],
                     ),

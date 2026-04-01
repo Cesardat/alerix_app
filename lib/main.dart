@@ -5,7 +5,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:alerix_app/screens/alarm_config_screen.dart';
-import 'dart:io';
 
 void main() {
   runApp(const AlerixApp());
@@ -129,6 +128,15 @@ class AlarmService {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
   bool _isStopping = false;
+  
+  // URL de sonidos que funcionan en iOS
+  final Map<String, String> _soundUrls = {
+    'Alarma 1': 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
+    'Alarma 2': 'https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3',
+    'Sirena': 'https://www.soundjay.com/misc/sounds/police-siren-01.mp3',
+    'Timbre': 'https://www.soundjay.com/misc/sounds/door-bell-01.mp3',
+    'Campana': 'https://www.soundjay.com/misc/sounds/church-bell-01.mp3',
+  };
 
   Future<void> playAlarm() async {
     if (_isPlaying) return;
@@ -136,8 +144,7 @@ class AlarmService {
     final prefs = await SharedPreferences.getInstance();
     final volume = prefs.getInt('alarm_volume') ?? 80;
     final duration = prefs.getInt('alarm_duration') ?? 30;
-    final selectedTone = prefs.getString('alarm_tone') ?? 'Predeterminado';
-    final customTonePath = prefs.getString('custom_tone_path');
+    final selectedTone = prefs.getString('alarm_tone') ?? 'Alarma 1';
     
     try {
       _isPlaying = true;
@@ -145,17 +152,8 @@ class AlarmService {
       
       await _audioPlayer.setPlayerMode(PlayerMode.mediaPlayer);
       
-      // Determinar qué sonido reproducir
-      if (selectedTone.startsWith('Personalizado:') && customTonePath != null && await File(customTonePath).exists()) {
-        // Usar UrlSource con file:// para archivos locales
-        await _audioPlayer.play(UrlSource('file://$customTonePath'));
-      } else if (selectedTone == 'Predeterminado') {
-        await _audioPlayer.play(AssetSource('sounds/jacocosound.mp3'));
-      } else {
-        // Para tonos predefinidos, usar el archivo local
-        await _audioPlayer.play(AssetSource('sounds/jacocosound.mp3'));
-      }
-      
+      final soundUrl = _soundUrls[selectedTone] ?? _soundUrls['Alarma 1']!;
+      await _audioPlayer.play(UrlSource(soundUrl));
       await _audioPlayer.setVolume(volume / 100.0);
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       
