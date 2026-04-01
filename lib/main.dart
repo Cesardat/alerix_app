@@ -145,7 +145,7 @@ class AlarmService {
       await _audioPlayer.setPlayerMode(PlayerMode.mediaPlayer);
       
       // Reproducir sonido
-      await _audioPlayer.play(AssetSource('sounds/jacocosound.wav'));
+      await _audioPlayer.play(AssetSource('sounds/jacocosound.mp3'));
       await _audioPlayer.setVolume(volume / 100.0);
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       

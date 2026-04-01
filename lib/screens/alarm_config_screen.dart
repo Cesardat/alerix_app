@@ -67,7 +67,7 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
     await _testPlayer.stop();
     
     // Reproducir sonido de prueba
-    await _testPlayer.play(AssetSource('sounds/jacocosound.wav'));
+    await _testPlayer.play(AssetSource('sounds/jacocosound.mp3'));
     await _testPlayer.setVolume(_volume / 100.0);
     
     // Mostrar mensaje de éxito
