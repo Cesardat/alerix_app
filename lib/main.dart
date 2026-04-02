@@ -31,6 +31,15 @@ Future<void> initNotifications() async {
   );
   await flutterLocalNotificationsPlugin.initialize(settings);
   
+  // Solicitar permisos explícitamente en iOS
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+      ?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+  
   // Mostrar notificación persistente
   await showPersistentNotification();
 }
@@ -45,15 +54,20 @@ Future<void> showPersistentNotification() async {
     ongoing: true,
     autoCancel: false,
   );
+  
   const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
     presentAlert: true,
     presentBadge: true,
     presentSound: true,
+    interruptionLevel: InterruptionLevel.timeSensitive,
+    threadIdentifier: 'emergency',
   );
+  
   const NotificationDetails details = NotificationDetails(
     android: androidDetails,
     iOS: iosDetails,
   );
+  
   await flutterLocalNotificationsPlugin.show(
     1,
     '🚨 ALERIX EMERGENCIA 🚨',
@@ -205,6 +219,27 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _setupNotificationTap();
+  }
+
+  void _setupNotificationTap() {
+    flutterLocalNotificationsPlugin.initialize(
+      const InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(),
+      ),
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+        );
+      },
+    );
+  }
+
   void _login() {
     final phone = _phoneController.text.trim();
     final password = _passwordController.text;
@@ -348,7 +383,6 @@ class _MainScreenState extends State<MainScreen> {
         iOS: DarwinInitializationSettings(),
       ),
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Al tocar la notificación, activar emergencia
         _triggerEmergency();
       },
     );
