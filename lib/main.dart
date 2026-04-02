@@ -31,17 +31,15 @@ Future<void> initNotifications() async {
   );
   await flutterLocalNotificationsPlugin.initialize(settings);
   
-  // Solicitar permisos explícitamente en iOS (incluyendo permisos críticos)
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
       ?.requestPermissions(
         alert: true,
         badge: true,
         sound: true,
-        critical: true, // ← Importante para notificaciones urgentes
+        critical: true,
       );
   
-  // NOTIFICACIÓN DE PRUEBA INMEDIATA (para verificar que funciona)
   await flutterLocalNotificationsPlugin.show(
     999,
     '🔔 PRUEBA DE NOTIFICACIÓN',
@@ -56,7 +54,6 @@ Future<void> initNotifications() async {
     ),
   );
   
-  // Mostrar notificación persistente
   await showPersistentNotification();
 }
 
@@ -100,11 +97,80 @@ class AlerixApp extends StatelessWidget {
     return MaterialApp(
       title: 'ALERIX',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.red,
-          primary: Colors.red.shade700,
+        brightness: Brightness.dark,
+        primaryColor: const Color(0xFFE53935),
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        cardColor: const Color(0xFF1E1E1E),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFE53935),
+          secondary: Color(0xFF1E88E5),
+          tertiary: Color(0xFF43A047),
+          error: Color(0xFFE53935),
+          surface: Color(0xFF1E1E1E),
+          onSurface: Color(0xFFB0B0B0),
         ),
-        useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1A1A1A),
+          elevation: 0,
+          centerTitle: true,
+          titleTextStyle: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: 0.5,
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+        ),
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(
+            fontSize: 34,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: 0.5,
+          ),
+          titleLarge: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: 0.3,
+          ),
+          bodyLarge: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFFE0E0E0),
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: Color(0xFFB0B0B0),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF2A2A2A),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFFE53935), width: 2),
+          ),
+          labelStyle: const TextStyle(color: Color(0xFFB0B0B0)),
+          prefixIconColor: Color(0xFFB0B0B0),
+        ),
       ),
       home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
@@ -291,7 +357,10 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.red.shade50, Colors.white],
+            colors: const [
+              Color(0xFF1A1A1A),
+              Color(0xFF121212),
+            ],
           ),
         ),
         child: Center(
@@ -300,65 +369,89 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/images/logo.png',
-                  width: 100,
-                  height: 100,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(Icons.warning_rounded, size: 80, color: Colors.red.shade700);
-                  },
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E1E),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFE53935).withOpacity(0.3),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 80,
+                    height: 80,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.warning_rounded, size: 80, color: const Color(0xFFE53935));
+                    },
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Text(
+                const SizedBox(height: 24),
+                const Text(
                   'ALERIX',
                   style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red.shade700,
+                    fontSize: 40,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFFE53935),
+                    letterSpacing: 2,
                   ),
                 ),
                 const SizedBox(height: 48),
                 TextField(
                   controller: _phoneController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Número de teléfono',
-                    prefixIcon: const Icon(Icons.phone),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: Icon(Icons.phone),
                   ),
                   keyboardType: TextInputType.phone,
+                  style: const TextStyle(color: Colors.white),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _passwordController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Contraseña',
-                    prefixIcon: const Icon(Icons.lock),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: Icon(Icons.lock),
                   ),
                   obscureText: true,
+                  style: const TextStyle(color: Colors.white),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: 55,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade700,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      backgroundColor: const Color(0xFFE53935),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                             'INICIAR SESIÓN',
-                            style: TextStyle(fontSize: 16, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1,
+                            ),
                           ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Contraseña de prueba: 1234',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  style: TextStyle(
+                    color: Colors.grey.shade500,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -467,12 +560,16 @@ class _MainScreenState extends State<MainScreen> {
         context: context,
         barrierDismissible: false,
         builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF1E1E1E),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const CircularProgressIndicator(),
+              const CircularProgressIndicator(color: Color(0xFFE53935)),
               const SizedBox(height: 16),
-              const Text('Obteniendo ubicación...'),
+              const Text(
+                'Obteniendo ubicación...',
+                style: TextStyle(color: Colors.white),
+              ),
             ],
           ),
         ),
@@ -526,26 +623,37 @@ class _MainScreenState extends State<MainScreen> {
           'assets/images/logo.png',
           height: 35,
           errorBuilder: (context, error, stackTrace) {
-            return const Text('ALERIX', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white));
+            return const Text(
+              'ALERIX',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            );
           },
         ),
-        backgroundColor: Colors.red.shade700,
+        backgroundColor: const Color(0xFF1A1A1A),
         centerTitle: true,
+        elevation: 0,
       ),
       body: Column(
         children: [
           Container(
             margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2))],
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF333333)),
             ),
             child: Center(
               child: Text(
                 'Contactos: $_contactCount/5',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red.shade700),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFE53935),
+                ),
               ),
             ),
           ),
@@ -555,11 +663,17 @@ class _MainScreenState extends State<MainScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.contacts, size: 64, color: Colors.grey.shade400),
+                        Icon(Icons.contacts, size: 64, color: Colors.grey.shade600),
                         const SizedBox(height: 16),
-                        Text('No hay contactos', style: TextStyle(color: Colors.grey.shade600)),
+                        const Text(
+                          'No hay contactos',
+                          style: TextStyle(color: Color(0xFFB0B0B0)),
+                        ),
                         const SizedBox(height: 8),
-                        Text('Presiona + para agregar', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                        Text(
+                          'Presiona + para agregar',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        ),
                       ],
                     ),
                   )
@@ -570,16 +684,28 @@ class _MainScreenState extends State<MainScreen> {
                       final contact = _contacts[index];
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        color: const Color(0xFF1E1E1E),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         child: ListTile(
                           leading: CircleAvatar(
-                            backgroundColor: Colors.red.shade100,
-                            child: Icon(Icons.person, color: Colors.red.shade700),
+                            backgroundColor: const Color(0xFFE53935).withOpacity(0.2),
+                            child: const Icon(Icons.person, color: Color(0xFFE53935)),
                           ),
-                          title: Text(contact.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text(contact.phone),
+                          title: Text(
+                            contact.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          subtitle: Text(
+                            contact.phone,
+                            style: const TextStyle(color: Color(0xFFB0B0B0)),
+                          ),
                           trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
+                            icon: const Icon(Icons.delete, color: Color(0xFFE53935)),
                             onPressed: () => _deleteContact(index),
                           ),
                         ),
@@ -590,34 +716,80 @@ class _MainScreenState extends State<MainScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, -2))],
+              color: const Color(0xFF1A1A1A),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
             ),
             child: Row(
               children: [
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AlarmConfigScreen())),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                    child: const Text('Ajustes', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1E88E5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      'Ajustes',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _isSosPressed ? null : _triggerEmergency,
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE53935),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
                     child: _isSosPressed
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('SOS', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'SOS',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 18,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _cancelAlarm,
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade600, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                    child: const Text('X', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF757575),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      'X',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -627,8 +799,9 @@ class _MainScreenState extends State<MainScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddContactDialog,
-        backgroundColor: Colors.red.shade700,
+        backgroundColor: const Color(0xFFE53935),
         child: const Icon(Icons.add, color: Colors.white),
+        elevation: 4,
       ),
     );
   }
@@ -639,17 +812,50 @@ class _MainScreenState extends State<MainScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Agregar contacto'),
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          'Agregar contacto',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Nombre', border: OutlineInputBorder())),
+            TextField(
+              controller: nameController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Nombre',
+                labelStyle: TextStyle(color: Color(0xFFB0B0B0)),
+                border: OutlineInputBorder(),
+              ),
+            ),
             const SizedBox(height: 16),
-            TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Teléfono', border: OutlineInputBorder()), keyboardType: TextInputType.phone),
+            TextField(
+              controller: phoneController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Teléfono',
+                labelStyle: TextStyle(color: Color(0xFFB0B0B0)),
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.phone,
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: Color(0xFFB0B0B0)),
+            ),
+          ),
           ElevatedButton(
             onPressed: () {
               final name = nameController.text.trim();
@@ -658,11 +864,18 @@ class _MainScreenState extends State<MainScreen> {
                 _addContact(Contact(name: name, phone: phone));
                 Navigator.pop(context);
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Completa todos los campos')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Completa todos los campos')),
+                );
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700),
-            child: const Text('Guardar', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE53935),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Guardar'),
           ),
         ],
       ),
