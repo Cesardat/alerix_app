@@ -123,6 +123,7 @@ class AlerixApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             elevation: 0,
+            foregroundColor: Colors.white, // Texto blanco en todos los botones
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -429,6 +430,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE53935),
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -561,6 +563,9 @@ class _MainScreenState extends State<MainScreen> {
         barrierDismissible: false,
         builder: (context) => AlertDialog(
           backgroundColor: const Color(0xFF1E1E1E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -619,18 +624,26 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Image.asset(
-          'assets/images/logo.png',
-          height: 35,
-          errorBuilder: (context, error, stackTrace) {
-            return const Text(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/logo.png',
+              height: 30,
+              errorBuilder: (context, error, stackTrace) {
+                return const SizedBox.shrink();
+              },
+            ),
+            const SizedBox(width: 8),
+            const Text(
               'ALERIX',
               style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 20,
+                letterSpacing: 1,
               ),
-            );
-          },
+            ),
+          ],
         ),
         backgroundColor: const Color(0xFF1A1A1A),
         centerTitle: true,
@@ -732,6 +745,7 @@ class _MainScreenState extends State<MainScreen> {
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AlarmConfigScreen())),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E88E5),
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -751,6 +765,7 @@ class _MainScreenState extends State<MainScreen> {
                     onPressed: _isSosPressed ? null : _triggerEmergency,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE53935),
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -779,6 +794,7 @@ class _MainScreenState extends State<MainScreen> {
                     onPressed: _cancelAlarm,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF757575),
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -871,6 +887,7 @@ class _MainScreenState extends State<MainScreen> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE53935),
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
