@@ -31,14 +31,30 @@ Future<void> initNotifications() async {
   );
   await flutterLocalNotificationsPlugin.initialize(settings);
   
-  // Solicitar permisos explícitamente en iOS
+  // Solicitar permisos explícitamente en iOS (incluyendo permisos críticos)
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
       ?.requestPermissions(
         alert: true,
         badge: true,
         sound: true,
+        critical: true, // ← Importante para notificaciones urgentes
       );
+  
+  // NOTIFICACIÓN DE PRUEBA INMEDIATA (para verificar que funciona)
+  await flutterLocalNotificationsPlugin.show(
+    999,
+    '🔔 PRUEBA DE NOTIFICACIÓN',
+    'Si ves esto, las notificaciones funcionan correctamente',
+    const NotificationDetails(
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.timeSensitive,
+      ),
+    ),
+  );
   
   // Mostrar notificación persistente
   await showPersistentNotification();
