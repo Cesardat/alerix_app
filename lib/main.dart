@@ -5,9 +5,61 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:alerix_app/screens/alarm_config_screen.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void main() {
+// Inicializar notificaciones
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializar notificaciones
+  await initNotifications();
+  
+  // Registrar categorías de acción para iOS
+  await NotificationService.registerNotificationCategories();
+  
+  // Mostrar notificación persistente
+  await NotificationService.showPersistentNotification();
+  
   runApp(const AlerixApp());
+}
+
+// Inicializar notificaciones
+Future<void> initNotifications() async {
+  // Configuración para Android
+  const AndroidInitializationSettings androidSettings =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  
+  // Configuración para iOS
+  const DarwinInitializationSettings iosSettings =
+      DarwinInitializationSettings(
+    requestAlertPermission: true,
+    requestBadgePermission: true,
+    requestSoundPermission: true,
+  );
+  
+  const InitializationSettings settings = InitializationSettings(
+    android: androidSettings,
+    iOS: iosSettings,
+  );
+  
+  await flutterLocalNotificationsPlugin.initialize(settings);
+  
+  // Crear canal de notificación en Android
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'emergency_channel',
+    'Emergencia',
+    description: 'Canal para alertas de emergencia',
+    importance: Importance.max,
+    priority: Priority.high,
+  );
+  
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
 }
 
 class AlerixApp extends StatelessWidget {
@@ -27,6 +79,94 @@ class AlerixApp extends StatelessWidget {
       home: const LoginScreen(),
       debugShowCheckedModeBanner: false,
     );
+  }
+}
+
+// ==================== SERVICIO DE NOTIFICACIONES ====================
+class NotificationService {
+  static const String channelId = 'emergency_channel';
+  static const int notificationId = 1;
+
+  // Registrar categorías de acción para iOS
+  static Future<void> registerNotificationCategories() async {
+    // Acción SOS
+    const DarwinNotificationCategoryAction sosAction = DarwinNotificationCategoryAction(
+      'SOS_ACTION',
+      'S.O.S.',
+      options: [DarwinNotificationCategoryActionOptions.foreground],
+    );
+
+    // Acción Cancelar
+    const DarwinNotificationCategoryAction cancelAction = DarwinNotificationCategoryAction(
+      'CANCEL_ACTION',
+      'Cancelar',
+      options: [DarwinNotificationCategoryActionOptions.foreground],
+    );
+
+    const DarwinNotificationCategory sosCategory = DarwinNotificationCategory(
+      'sos_category',
+      actions: [sosAction, cancelAction],
+      options: [],
+    );
+
+    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>()
+        ?.setNotificationCategories([sosCategory]);
+  }
+
+  // Mostrar notificación persistente con botón SOS
+  static Future<void> showPersistentNotification() async {
+    // Configuración para Android
+    const AndroidNotificationAction sosAction = AndroidNotificationAction(
+      'SOS_ACTION',
+      'S.O.S.',
+      icon: DrawableResourceAndroidIcon('@drawable/ic_alert'),
+      showsUserInterface: true,
+    );
+    
+    const AndroidNotificationAction cancelAction = AndroidNotificationAction(
+      'CANCEL_ACTION',
+      'Cancelar',
+      icon: DrawableResourceAndroidIcon('@drawable/ic_cancel'),
+      showsUserInterface: true,
+    );
+
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      channelId,
+      'Emergencia',
+      channelDescription: 'Canal para alertas de emergencia',
+      importance: Importance.max,
+      priority: Priority.max,
+      ongoing: true,
+      autoCancel: false,
+      actions: [sosAction, cancelAction],
+    );
+
+    // Configuración para iOS
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      presentPreview: true,
+      categoryIdentifier: 'sos_category',
+    );
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await flutterLocalNotificationsPlugin.show(
+      notificationId,
+      '🚨 ALERIX EMERGENCIA 🚨',
+      'Presiona SOS para activar ayuda',
+      details,
+    );
+  }
+
+  // Eliminar notificación
+  static Future<void> cancelNotification() async {
+    await flutterLocalNotificationsPlugin.cancel(notificationId);
   }
 }
 
@@ -192,6 +332,51 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _setupNotificationHandlers();
+  }
+
+  void _setupNotificationHandlers() {
+    flutterLocalNotificationsPlugin.initialize(
+      const InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(),
+      ),
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        if (response.actionId == 'SOS_ACTION') {
+          _triggerEmergencyFromNotification();
+        } else if (response.actionId == 'CANCEL_ACTION') {
+          _cancelAlarmFromNotification();
+        }
+      },
+    );
+  }
+
+  void _triggerEmergencyFromNotification() {
+    // Activar emergencia desde la notificación
+    if (mounted) {
+      // Navegar a MainScreen y activar emergencia
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainScreen()),
+      ).then((_) {
+        // Pequeño delay para asegurar que la pantalla está cargada
+        Future.delayed(const Duration(milliseconds: 500), () {
+          // Buscar la instancia de MainScreen y activar emergencia
+          // Esto se manejará mejor desde MainScreen
+        });
+      });
+    }
+  }
+
+  void _cancelAlarmFromNotification() {
+    // Cancelar alarma desde la notificación
+    // El servicio de alarma se detendrá
+    debugPrint('Alarma cancelada desde notificación');
+  }
+
   void _login() {
     final phone = _phoneController.text.trim();
     final password = _passwordController.text;
@@ -339,6 +524,23 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _loadContacts();
+    _setupNotificationHandlers();
+  }
+
+  void _setupNotificationHandlers() {
+    flutterLocalNotificationsPlugin.initialize(
+      const InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(),
+      ),
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        if (response.actionId == 'SOS_ACTION') {
+          _triggerEmergency();
+        } else if (response.actionId == 'CANCEL_ACTION') {
+          _cancelAlarm();
+        }
+      },
+    );
   }
 
   @override
