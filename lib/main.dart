@@ -71,7 +71,7 @@ Future<void> showPersistentNotification() async {
   await flutterLocalNotificationsPlugin.show(
     1,
     '🚨 ALERIX EMERGENCIA 🚨',
-    'Presiona la notificación para activar SOS',
+    'Presiona para activar SOS',
     details,
   );
 }
