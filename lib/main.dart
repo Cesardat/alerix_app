@@ -16,6 +16,146 @@ void main() async {
   runApp(const AlerixApp());
 }
 
+// ==================== SPLASH SCREEN ====================
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+    );
+    
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    );
+    
+    _controller.forward();
+    
+    Future.delayed(const Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF121212),
+      body: Center(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E1E),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFE53935).withOpacity(0.3),
+                        blurRadius: 30,
+                        spreadRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 100,
+                    height: 100,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.warning_rounded,
+                        size: 100,
+                        color: Color(0xFFE53935),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 30),
+                const Text(
+                  'ALERIX',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFFE53935),
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: const Color(0xFFE53935),
+                    backgroundColor: Colors.grey.shade800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== ANIMACIÓN DE FADE ====================
+class FadeAnimation extends StatelessWidget {
+  final double delay;
+  final Widget child;
+
+  const FadeAnimation(this.delay, this.child, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 500),
+      curve: Curves.easeOut,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, (1 - value) * 20),
+            child: child!,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
 Future<void> initNotifications() async {
   const AndroidInitializationSettings androidSettings =
       AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -101,6 +241,7 @@ class AlerixApp extends StatelessWidget {
         primaryColor: const Color(0xFFE53935),
         scaffoldBackgroundColor: const Color(0xFF121212),
         cardColor: const Color(0xFF1E1E1E),
+        fontFamily: 'Poppins',
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFFE53935),
           secondary: Color(0xFF1E88E5),
@@ -123,7 +264,7 @@ class AlerixApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             elevation: 0,
-            foregroundColor: Colors.white, // Texto blanco en todos los botones
+            foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -173,7 +314,7 @@ class AlerixApp extends StatelessWidget {
           prefixIconColor: Color(0xFFB0B0B0),
         ),
       ),
-      home: const LoginScreen(),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -367,7 +508,7 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            child: Column(
+            child: FadeAnimation(0.2, Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
@@ -456,7 +597,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ],
-            ),
+            )),
           ),
         ),
       ),
@@ -651,7 +792,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: Column(
         children: [
-          Container(
+          FadeAnimation(0.1, Container(
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
@@ -669,10 +810,10 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
             ),
-          ),
+          )),
           Expanded(
             child: _contacts.isEmpty
-                ? Center(
+                ? FadeAnimation(0.2, Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -689,8 +830,8 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
+                  ))
+                : FadeAnimation(0.2, ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: _contacts.length,
                     itemBuilder: (context, index) {
@@ -724,9 +865,9 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       );
                     },
-                  ),
+                  )),
           ),
-          Container(
+          FadeAnimation(0.3, Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: const Color(0xFF1A1A1A),
@@ -810,7 +951,7 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ],
             ),
-          ),
+          )),
         ],
       ),
       floatingActionButton: FloatingActionButton(
