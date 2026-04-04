@@ -11,7 +11,7 @@ struct Provider: TimelineProvider {
         completion(entry)
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+    func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> ()) {
         let entries: [SimpleEntry] = [SimpleEntry(date: Date())]
         let timeline = Timeline(entries: entries, policy: .atEnd)
         completion(timeline)
@@ -26,25 +26,29 @@ struct TodayWidgetEntryView : View {
     var entry: Provider.Entry
 
     var body: some View {
-        VStack {
+        VStack(spacing: 8) {
             Image("logo")
                 .resizable()
                 .frame(width: 40, height: 40)
+                .clipShape(Circle())
+            
             Text("ALERIX")
-                .font(.headline)
+                .font(.system(size: 12, weight: .bold))
                 .foregroundColor(.red)
+            
             Link(destination: URL(string: "alerix://sos")!) {
                 Text("SOS")
-                    .font(.title2)
-                    .bold()
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(.vertical, 8)
                     .background(Color.red)
-                    .cornerRadius(12)
+                    .cornerRadius(8)
             }
         }
-        .padding()
+        .padding(12)
+        .background(Color.black.opacity(0.9))
+        .cornerRadius(16)
     }
 }
 
