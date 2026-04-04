@@ -52,6 +52,11 @@ flutter:
   assets:
     - assets/sounds/alarm.mp3
     - assets/images/logo.png
+    - assets/sounds/alarm1.mp3
+    - assets/sounds/alarm2.mp3
+    - assets/sounds/siren.mp3
+    - assets/sounds/bell.mp3
+    - assets/sounds/alert.mp3
 
   fonts:
     - family: Poppins
@@ -66,7 +71,7 @@ flutter:
           weight: 600
         - asset: assets/fonts/Poppins-Bold.ttf
           weight: 700
-          
+
 flutter_launcher_icons:
   ios: true
   image_path: "assets/images/logo.png"
