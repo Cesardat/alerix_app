@@ -27,11 +27,3 @@ workflows:
           zip -r ../../../app.ipa Payload
     artifacts:
       - app.ipa
-    xcode:
-      project: ios/Runner.xcodeproj
-      schemes:
-        - Runner
-    publishing:
-      email:
-        recipients:
-          - tu-email@gmail.com
