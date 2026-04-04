@@ -7,23 +7,12 @@ workflows:
     scripts:
       - name: flutter pub get
         script: flutter pub get
-      - name: Install CocoaPods
-        script: |
-          cd ios
-          pod install
-          cd ..
-      - name: Build IPA with Widget
+      - name: Build IPA
         script: |
           flutter build ios --release --no-codesign
           cd build/ios/iphoneos
           mkdir Payload
           cp -r Runner.app Payload/
-          
-          # Verificar si existe el widget extension
-          if [ -d "TodayWidget.app" ]; then
-            cp -r TodayWidget.app Payload/
-          fi
-          
           zip -r ../../../app.ipa Payload
     artifacts:
       - app.ipa

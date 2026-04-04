@@ -6,41 +6,14 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:alerix_app/screens/alarm_config_screen.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:home_widget/home_widget.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Registrar callback para el widget
-  await HomeWidget.registerBackgroundCallback(handleWidgetTap);
-  
   await initNotifications();
   runApp(const AlerixApp());
-}
-
-// Callback para cuando se presiona el widget
-@pragma('vm:entry-point')
-void handleWidgetTap(Uri? uri) async {
-  if (uri?.scheme == 'alerix' && uri?.host == 'sos') {
-    print('🚨 Widget SOS presionado');
-    // Aquí necesitas activar la emergencia
-    // Como estamos en background, podemos usar una notificación local
-    await flutterLocalNotificationsPlugin.show(
-      888,
-      '🚨 ALERIX EMERGENCIA 🚨',
-      'Activando sistema de emergencia...',
-      const NotificationDetails(
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentSound: true,
-          interruptionLevel: InterruptionLevel.critical,
-        ),
-      ),
-    );
-  }
 }
 
 // ==================== SPLASH SCREEN ====================
@@ -198,14 +171,14 @@ Future<void> initNotifications() async {
   );
   await flutterLocalNotificationsPlugin.initialize(settings);
   
-  // Solicitar permisos con critical alert
+  // SOLICITAR PERMISOS CON CRITICAL ALERT (IMPORTANTE PARA PANTALLA BLOQUEADA)
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
       ?.requestPermissions(
         alert: true,
         badge: true,
         sound: true,
-        critical: true,
+        critical: true,  // ← CRUCIAL para pantalla bloqueada
       );
   
   await flutterLocalNotificationsPlugin.show(
@@ -217,7 +190,7 @@ Future<void> initNotifications() async {
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
-        interruptionLevel: InterruptionLevel.critical,
+        interruptionLevel: InterruptionLevel.critical,  // ← CRITICAL en lugar de timeSensitive
       ),
     ),
   );
@@ -240,7 +213,7 @@ Future<void> showPersistentNotification() async {
     presentAlert: true,
     presentBadge: true,
     presentSound: true,
-    interruptionLevel: InterruptionLevel.critical,
+    interruptionLevel: InterruptionLevel.critical,  // ← CAMBIADO A CRITICAL
     threadIdentifier: 'emergency',
   );
   
