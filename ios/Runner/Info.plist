@@ -31,6 +31,19 @@
 	<key>Entitlements</key>
 	<string>Runner.entitlements</string>
 	
+	<!-- URL SCHEME PARA EL WIDGET -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>alerix</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>com.example.alerix</string>
+		</dict>
+	</array>
+	
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -85,7 +98,7 @@
 		<string>remote-notification</string>
 	</array>
 
-	<!-- DESCRIPCIÓN PARA ALERTAS CRÍTICAS (OBLIGATORIO PARA CRITICAL ALERTS) -->
+	<!-- DESCRIPCIÓN PARA ALERTAS CRÍTICAS -->
 	<key>NSUserNotificationsCriticalAlertUsageDescription</key>
 	<string>ALERIX necesita enviar alertas críticas para emergencias incluso cuando el teléfono está en modo No Molestar o la pantalla está bloqueada</string>
 
