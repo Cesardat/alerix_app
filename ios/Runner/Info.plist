@@ -85,6 +85,10 @@
 		<string>remote-notification</string>
 	</array>
 
+	<!-- DESCRIPCIÓN PARA ALERTAS CRÍTICAS (OBLIGATORIO PARA CRITICAL ALERTS) -->
+	<key>NSUserNotificationsCriticalAlertUsageDescription</key>
+	<string>ALERIX necesita enviar alertas críticas para emergencias incluso cuando el teléfono está en modo No Molestar o la pantalla está bloqueada</string>
+
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

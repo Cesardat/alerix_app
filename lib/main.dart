@@ -171,13 +171,14 @@ Future<void> initNotifications() async {
   );
   await flutterLocalNotificationsPlugin.initialize(settings);
   
+  // SOLICITAR PERMISOS CON CRITICAL ALERT (IMPORTANTE PARA PANTALLA BLOQUEADA)
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
       ?.requestPermissions(
         alert: true,
         badge: true,
         sound: true,
-        critical: true,
+        critical: true,  // ← CRUCIAL para pantalla bloqueada
       );
   
   await flutterLocalNotificationsPlugin.show(
@@ -189,7 +190,7 @@ Future<void> initNotifications() async {
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
-        interruptionLevel: InterruptionLevel.timeSensitive,
+        interruptionLevel: InterruptionLevel.critical,  // ← CRITICAL en lugar de timeSensitive
       ),
     ),
   );
@@ -212,7 +213,7 @@ Future<void> showPersistentNotification() async {
     presentAlert: true,
     presentBadge: true,
     presentSound: true,
-    interruptionLevel: InterruptionLevel.timeSensitive,
+    interruptionLevel: InterruptionLevel.critical,  // ← CAMBIADO A CRITICAL
     threadIdentifier: 'emergency',
   );
   
@@ -389,7 +390,7 @@ class WhatsAppService {
   }
 }
 
-// ==================== SERVICIO DE ALARMA (ACTUALIZADO CON MÚLTIPLES TONOS) ====================
+// ==================== SERVICIO DE ALARMA ====================
 class AlarmService {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
