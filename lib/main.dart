@@ -389,31 +389,52 @@ class WhatsAppService {
   }
 }
 
-// ==================== SERVICIO DE ALARMA ====================
+// ==================== SERVICIO DE ALARMA (ACTUALIZADO CON MÚLTIPLES TONOS) ====================
 class AlarmService {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
   bool _isStopping = false;
+
+  // Mapeo de tonos a archivos
+  final Map<String, String> _toneFiles = {
+    'Alarma 1': 'alarm1.mp3',
+    'Alarma 2': 'alarm2.mp3',
+    'Sirena': 'siren.mp3',
+    'Campana': 'bell.mp3',
+    'Alerta': 'alert.mp3',
+  };
+
   Future<void> playAlarm() async {
     if (_isPlaying) return;
+    
     final prefs = await SharedPreferences.getInstance();
     final volume = prefs.getInt('alarm_volume') ?? 80;
     final duration = prefs.getInt('alarm_duration') ?? 30;
+    final selectedTone = prefs.getString('alarm_tone') ?? 'Alarma 1';
+    
+    // Obtener el archivo correspondiente
+    final toneFile = _toneFiles[selectedTone] ?? 'alarm1.mp3';
+    
     try {
       _isPlaying = true;
       _isStopping = false;
       await _audioPlayer.setPlayerMode(PlayerMode.mediaPlayer);
-      await _audioPlayer.play(AssetSource('sounds/alarm.mp3'));
+      await _audioPlayer.play(AssetSource('sounds/$toneFile'));
       await _audioPlayer.setVolume(volume / 100.0);
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      
+      debugPrint('🔔 Alarma sonando: $selectedTone - Volumen: $volume%, Duración: ${duration}s');
+      
       Future.delayed(Duration(seconds: duration), () {
         if (_isPlaying && !_isStopping) stopAlarm();
       });
+      
     } catch (e) {
       debugPrint('Error reproduciendo alarma: $e');
       _isPlaying = false;
     }
   }
+
   Future<void> stopAlarm() async {
     if (!_isPlaying) return;
     _isStopping = true;
@@ -426,6 +447,7 @@ class AlarmService {
       _isStopping = false;
     }
   }
+
   void dispose() {
     _audioPlayer.dispose();
   }

@@ -12,27 +12,18 @@ class AlarmConfigScreen extends StatefulWidget {
 class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
   int _volume = 80;
   int _duration = 30;
-  String _selectedTone = 'Predeterminado';
+  String _selectedTone = 'Alarma 1';
   bool _isLoading = false;
   final AudioPlayer _testPlayer = AudioPlayer();
   
-  // Lista de tonos predefinidos
-  final List<String> _systemTones = [
-    'Predeterminado',
-    'Alarma',
-    'Timbre',
-    'Sirena',
-    'Campana',
+  // Lista de tonos disponibles (nombre y archivo)
+  final List<Map<String, String>> _availableTones = [
+    {'name': 'Alarma 1', 'file': 'alarm1.mp3'},
+    {'name': 'Alarma 2', 'file': 'alarm2.mp3'},
+    {'name': 'Sirena', 'file': 'siren.mp3'},
+    {'name': 'Campana', 'file': 'bell.mp3'},
+    {'name': 'Alerta', 'file': 'alert.mp3'},
   ];
-
-  // Para iOS, usaremos sonidos del sistema con DeviceSource
-  final Map<String, String> _iosSounds = {
-    'Predeterminado': 'alarm.caf',
-    'Alarma': 'alarm.caf',
-    'Timbre': 'doorbell.caf',
-    'Sirena': 'siren.caf',
-    'Campana': 'bell.caf',
-  };
 
   @override
   void initState() {
@@ -52,7 +43,7 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
     setState(() {
       _volume = prefs.getInt('alarm_volume') ?? 80;
       _duration = prefs.getInt('alarm_duration') ?? 30;
-      _selectedTone = prefs.getString('alarm_tone') ?? 'Predeterminado';
+      _selectedTone = prefs.getString('alarm_tone') ?? 'Alarma 1';
       _isLoading = false;
     });
   }
@@ -75,14 +66,19 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
     try {
       await _testPlayer.stop();
       
-      // Usar AssetSource para sonido local
-      await _testPlayer.play(AssetSource('sounds/alarm.mp3'));
+      // Obtener el archivo del tono seleccionado
+      final selectedFile = _availableTones.firstWhere(
+        (tone) => tone['name'] == _selectedTone,
+        orElse: () => _availableTones.first,
+      )['file']!;
+      
+      await _testPlayer.play(AssetSource('sounds/$selectedFile'));
       await _testPlayer.setVolume(_volume / 100.0);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('🔔 Probando alarma - Volumen: $_volume%'),
+            content: Text('🔔 Probando: $_selectedTone - Volumen: $_volume%'),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -107,9 +103,10 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configuración de Alarma'),
-        backgroundColor: Colors.red.shade700,
+        backgroundColor: const Color(0xFF1A1A1A),
         foregroundColor: Colors.white,
         centerTitle: true,
+        elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -122,15 +119,9 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      color: const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFF333333)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,21 +131,26 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
                           value: _selectedTone,
+                          dropdownColor: const Color(0xFF2A2A2A),
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            filled: true,
+                            fillColor: const Color(0xFF2A2A2A),
                           ),
-                          items: _systemTones.map((tone) {
+                          style: const TextStyle(color: Colors.white),
+                          items: _availableTones.map((tone) {
                             return DropdownMenuItem(
-                              value: tone,
-                              child: Text(tone),
+                              value: tone['name'],
+                              child: Text(tone['name']!),
                             );
                           }).toList(),
                           onChanged: (value) {
@@ -172,15 +168,9 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      color: const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFF333333)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,15 +184,13 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
                             const Spacer(),
                             Text(
                               '$_volume%',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
@@ -212,7 +200,8 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                           min: 0,
                           max: 100,
                           divisions: 100,
-                          activeColor: Colors.red.shade700,
+                          activeColor: const Color(0xFFE53935),
+                          inactiveColor: Colors.grey.shade700,
                           label: '$_volume%',
                           onChanged: (value) {
                             setState(() => _volume = value.round());
@@ -227,15 +216,9 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      color: const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFF333333)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,15 +232,13 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
                             const Spacer(),
                             Text(
                               '$_duration segundos',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
@@ -267,7 +248,8 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                           min: 5,
                           max: 60,
                           divisions: 55,
-                          activeColor: Colors.red.shade700,
+                          activeColor: const Color(0xFFE53935),
+                          inactiveColor: Colors.grey.shade700,
                           label: '$_duration segundos',
                           onChanged: (value) {
                             setState(() => _duration = value.round());
@@ -286,11 +268,11 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                           icon: const Icon(Icons.play_arrow),
                           label: const Text('Probar Alarma'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade600,
+                            backgroundColor: const Color(0xFF1E88E5),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
                         ),
@@ -302,11 +284,11 @@ class _AlarmConfigScreenState extends State<AlarmConfigScreen> {
                           icon: const Icon(Icons.save),
                           label: const Text('Guardar'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red.shade700,
+                            backgroundColor: const Color(0xFFE53935),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
                         ),
